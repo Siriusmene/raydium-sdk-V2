@@ -1309,6 +1309,7 @@ export default class CpmmModule extends ModuleBase {
 
   public async collectMultiCreatorFees<T extends TxVersion>({
     poolInfoList,
+    poolKeyList: propsPoolKeyList,
     programId = CREATE_CPMM_POOL_PROGRAM,
     txVersion,
     computeBudgetConfig,
@@ -1319,11 +1320,31 @@ export default class CpmmModule extends ModuleBase {
 
     const tokenAccRecord: Record<string, PublicKey> = {};
 
-    const poolKeyList = await this.scope.api.fetchPoolKeysById({ idList: poolInfoList.map((p) => p.id) });
+    let poolKeyList = propsPoolKeyList ?? [];
+
+    if (!poolKeyList.length) {
+      const idList = poolInfoList.map((p) => p.id);
+      const chunkSize = 95;
+      const keyGroup: string[][] = [];
+      for (let i = 0; i < idList.length; i += chunkSize) {
+        keyGroup.push(idList.slice(i, i + chunkSize));
+      }
+
+      const r = (await Promise.all(
+        keyGroup.map((list) => this.scope.api.fetchPoolKeysById({ idList: list })),
+      )) as CpmmKeys[][];
+      poolKeyList = r.flat();
+    }
+    const poolKeysRecord = poolKeyList.reduce(
+      (acc, cur) => ({
+        ...acc,
+        [cur.id]: cur,
+      }),
+      {} as Record<string, CpmmKeys>,
+    );
 
     for (const poolInfo of poolInfoList) {
-      const poolKeys = (poolKeyList.find((p) => p.id === poolInfo.id) ||
-        (await this.getCpmmPoolKeys(poolInfo.id))) as CpmmKeys;
+      const poolKeys = (poolKeysRecord[poolInfo.id] || (await this.getCpmmPoolKeys(poolInfo.id))) as CpmmKeys;
       const [mintA, mintB, mintAProgram, mintBProgram] = [
         new PublicKey(poolInfo.mintA.address),
         new PublicKey(poolInfo.mintB.address),
