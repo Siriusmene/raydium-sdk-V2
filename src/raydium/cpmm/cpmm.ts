@@ -1357,31 +1357,31 @@ export default class CpmmModule extends ModuleBase {
       const tokenAccountB =
         tokenAccRecord[poolInfo.mintB.address] || this.scope.account.getAssociatedTokenAccount(mintB, mintBProgram);
 
-      if (!tokenAccRecord[poolInfo.mintA.address])
-        txBuilder.addInstruction({
-          instructions: [
-            createAssociatedTokenAccountIdempotentInstruction(
-              this.scope.ownerPubKey,
-              tokenAccountA,
-              this.scope.ownerPubKey,
-              mintA,
-              mintAProgram,
-            ),
-          ],
-        });
+      // if (!tokenAccRecord[poolInfo.mintA.address])
+      //   txBuilder.addInstruction({
+      //     instructions: [
+      //       createAssociatedTokenAccountIdempotentInstruction(
+      //         this.scope.ownerPubKey,
+      //         tokenAccountA,
+      //         this.scope.ownerPubKey,
+      //         mintA,
+      //         mintAProgram,
+      //       ),
+      //     ],
+      //   });
 
-      if (!tokenAccRecord[poolInfo.mintB.address])
-        txBuilder.addInstruction({
-          instructions: [
-            createAssociatedTokenAccountIdempotentInstruction(
-              this.scope.ownerPubKey,
-              tokenAccountB,
-              this.scope.ownerPubKey,
-              mintB,
-              mintBProgram,
-            ),
-          ],
-        });
+      // if (!tokenAccRecord[poolInfo.mintB.address])
+      //   txBuilder.addInstruction({
+      //     instructions: [
+      //       createAssociatedTokenAccountIdempotentInstruction(
+      //         this.scope.ownerPubKey,
+      //         tokenAccountB,
+      //         this.scope.ownerPubKey,
+      //         mintB,
+      //         mintBProgram,
+      //       ),
+      //     ],
+      //   });
 
       tokenAccRecord[poolInfo.mintA.address] = tokenAccountA;
       tokenAccRecord[poolInfo.mintB.address] = tokenAccountB;
