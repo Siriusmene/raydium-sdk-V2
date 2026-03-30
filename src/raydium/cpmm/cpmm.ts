@@ -563,7 +563,10 @@ export default class CpmmModule extends ModuleBase {
     });
     txBuilder.addCustomComputeBudget(computeBudgetConfig);
     txBuilder.addTipInstruction(txTipConfig);
-    return txBuilder.versionBuild({ txVersion }) as Promise<MakeTxData<T>>;
+    return txBuilder.versionBuild({
+      txVersion,
+      lookupTableAddress: poolKeys.lookupTableAccount ? [poolKeys.lookupTableAccount] : undefined,
+    }) as Promise<MakeTxData<T>>;
   }
 
   public async withdrawLiquidity<T extends TxVersion>(params: WithdrawCpmmLiquidityParams<T>): Promise<MakeTxData<T>> {
@@ -675,7 +678,10 @@ export default class CpmmModule extends ModuleBase {
     });
     txBuilder.addCustomComputeBudget(computeBudgetConfig);
     txBuilder.addTipInstruction(txTipConfig);
-    return txBuilder.versionBuild({ txVersion }) as Promise<MakeTxData<T>>;
+    return txBuilder.versionBuild({
+      txVersion,
+      lookupTableAddress: poolKeys.lookupTableAccount ? [poolKeys.lookupTableAccount] : undefined,
+    }) as Promise<MakeTxData<T>>;
   }
 
   public async swap<T extends TxVersion>(params: CpmmSwapParams<T>): Promise<MakeTxData<T>> {
@@ -814,7 +820,10 @@ export default class CpmmModule extends ModuleBase {
 
     txBuilder.addCustomComputeBudget(computeBudgetConfig);
     txBuilder.addTipInstruction(txTipConfig);
-    return txBuilder.versionBuild({ txVersion }) as Promise<MakeTxData<T>>;
+    return txBuilder.versionBuild({
+      txVersion,
+      lookupTableAddress: poolKeys.lookupTableAccount ? [poolKeys.lookupTableAccount] : undefined,
+    }) as Promise<MakeTxData<T>>;
   }
 
   public async lockLp<T extends TxVersion>(params: LockCpmmLpParams<T>): Promise<MakeTxData<CpmmLockExtInfo>> {
@@ -847,7 +856,11 @@ export default class CpmmModule extends ModuleBase {
     txBuilder.addInstruction(insData);
     txBuilder.addCustomComputeBudget(computeBudgetConfig);
     txBuilder.addTipInstruction(txTipConfig);
-    return txBuilder.versionBuild({ txVersion, extInfo: insData.address }) as Promise<MakeTxData<CpmmLockExtInfo>>;
+    return txBuilder.versionBuild({
+      txVersion,
+      extInfo: insData.address,
+      lookupTableAddress: poolKeys.lookupTableAccount ? [poolKeys.lookupTableAccount] : undefined,
+    }) as Promise<MakeTxData<CpmmLockExtInfo>>;
   }
 
   public async harvestLockLp<T extends TxVersion>(params: HarvestLockCpmmLpParams<T>): Promise<MakeTxData> {
@@ -960,7 +973,10 @@ export default class CpmmModule extends ModuleBase {
 
     txBuilder.addCustomComputeBudget(computeBudgetConfig);
     txBuilder.addTipInstruction(txTipConfig);
-    return txBuilder.versionBuild({ txVersion }) as Promise<MakeTxData>;
+    return txBuilder.versionBuild({
+      txVersion,
+      lookupTableAddress: poolKeys.lookupTableAccount ? [poolKeys.lookupTableAccount] : undefined,
+    }) as Promise<MakeTxData>;
   }
 
   public async harvestMultiLockLp<T extends TxVersion>(
@@ -979,6 +995,7 @@ export default class CpmmModule extends ModuleBase {
     const feePayer = params.feePayer || this.scope.ownerPubKey;
     const txBuilder = this.createTxBuilder(feePayer);
     const tokenAccRecord: Record<string, PublicKey | undefined> = {};
+    const lookupTableAccounts: string[] = [];
 
     for (const lockData of lockInfo) {
       const { poolInfo, lpFeeAmount, nftMint } = lockData;
@@ -1070,6 +1087,7 @@ export default class CpmmModule extends ModuleBase {
         this.logAndCreateError("cannot found target token accounts", { tokenAccountA, tokenAccountB });
 
       const poolKeys = lockData.poolKeys ?? (await this.getCpmmPoolKeys(poolInfo.id));
+      if (poolKeys.lookupTableAccount) lookupTableAccounts.push(poolKeys.lookupTableAccount);
 
       const { publicKey: nftAccount } = getATAAddress(feePayer, nftMint, TOKEN_PROGRAM_ID);
       const { publicKey: lockPda } = getCpLockPda(programId, nftMint);
@@ -1112,7 +1130,9 @@ export default class CpmmModule extends ModuleBase {
     }
 
     if (txVersion === TxVersion.V0)
-      return txBuilder.sizeCheckBuildV0({ computeBudgetConfig }) as Promise<MakeMultiTxData<T>>;
+      return txBuilder.sizeCheckBuildV0({ computeBudgetConfig, lookupTableAddress: lookupTableAccounts }) as Promise<
+        MakeMultiTxData<T>
+      >;
     return txBuilder.sizeCheckBuild({ computeBudgetConfig }) as Promise<MakeMultiTxData<T>>;
   }
 
@@ -1409,7 +1429,10 @@ export default class CpmmModule extends ModuleBase {
     }
 
     if (txVersion === TxVersion.V0)
-      return txBuilder.sizeCheckBuildV0({ computeBudgetConfig }) as Promise<MakeMultiTxData<T>>;
+      return txBuilder.sizeCheckBuildV0({
+        computeBudgetConfig,
+        lookupTableAddress: poolKeyList.map((p) => p.lookupTableAccount).filter(Boolean) as string[],
+      }) as Promise<MakeMultiTxData<T>>;
     return txBuilder.sizeCheckBuild({ computeBudgetConfig }) as Promise<MakeMultiTxData<T>>;
   }
 

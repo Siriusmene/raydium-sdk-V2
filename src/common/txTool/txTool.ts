@@ -251,11 +251,14 @@ export class TxBuilder {
   public async versionBuild<O = Record<string, any>>({
     txVersion,
     extInfo,
+    lookupTableAddress,
   }: {
     txVersion?: TxVersion;
     extInfo?: O;
+    lookupTableAddress?: string[];
   }): Promise<MakeTxData<TxVersion.LEGACY, O> | MakeTxData<TxVersion.V0, O>> {
-    if (txVersion === TxVersion.V0) return (await this.buildV0({ ...(extInfo || {}) })) as MakeTxData<TxVersion.V0, O>;
+    if (txVersion === TxVersion.V0)
+      return (await this.buildV0({ ...(extInfo || {}), lookupTableAddress })) as unknown as MakeTxData<TxVersion.V0, O>;
     return this.build<O>(extInfo) as MakeTxData<TxVersion.LEGACY, O>;
   }
 
